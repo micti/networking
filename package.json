@@ -1,0 +1,8 @@
+{
+  "dependencies": {
+    "curve25519-js": "^0.0.4"
+  },
+  "devDependencies": {
+    "standard": "^17.1.0"
+  }
+}
