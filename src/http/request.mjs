@@ -11,6 +11,7 @@ const request = async (url, options) => {
   if (protocol !== 'https:') throw new Error('only https')
 
   const [host] = await dns.resolve(hostname)
+  console.log('>> dns done', Date.now())
   const request = messageGet(url, firefoxMac115.headers.http1_1)
   let headers
   const data = []
@@ -28,6 +29,15 @@ const request = async (url, options) => {
     onMain: (code, text) => {
       statusText = text
       statusCode = code
+    },
+    onDone: (time) => {
+      requestResolve({
+        statusCode,
+        statusText,
+        headers,
+        time,
+        response: data
+      })
     }
   })
 
@@ -40,7 +50,6 @@ const request = async (url, options) => {
       response.parse(data)
     },
     onFinish: () => {
-      response.addInfo()
       requestResolve({
         statusCode,
         statusText,
@@ -49,7 +58,7 @@ const request = async (url, options) => {
       })
     },
     onError: (error) => {
-      console.log(error)
+      requestReject(error)
     },
     hello: {
       ciphers: firefoxMac115.ciphers,

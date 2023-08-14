@@ -139,20 +139,21 @@ class ServerParser {
         }
 
         if (_h(record.subarray(record.length - 1)) === '17') {
-          r.push({
-            hs: false,
-            type: RECORD_TYPES.APPLICATION_DATA,
-            data: _h(record.subarray(0, record.length - 1))
-          })
-          this.tls.onServerApplication(copy(record.subarray(0, record.length - 1)))
+          // r.push({
+          //   hs: false,
+          //   type: RECORD_TYPES.APPLICATION_DATA,
+          //   data: _h(record.subarray(0, record.length - 1))
+          // })
+          // this.tls.onServerApplication(copy(record.subarray(0, record.length - 1)))
+          this.tls.onServerApplication(record.subarray(0, record.length - 1))
         }
 
         if (_h(record.subarray(record.length - 1)) === '15') {
-          r.push({
-            hs: false,
-            type: RECORD_TYPES.ERROR,
-            data: _h(record.subarray(0, record.length - 1))
-          })
+          // r.push({
+          //   hs: false,
+          //   type: RECORD_TYPES.ERROR,
+          //   data: _h(record.subarray(0, record.length - 1))
+          // })
 
           const errorData = ErrorRecord.parse(record.subarray(0, record.length - 1))
           if (errorData.level === 1 && errorData.code === 0) {

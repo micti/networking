@@ -50,8 +50,10 @@ class TlsClient {
   }
 
   connect () {
+    console.log('>> start tls', Date.now())
     this.socket = net.createConnection(this.info.port, this.info.host, () => {
       this.socket.on('data', (d) => this.onReceive(d))
+      console.log('>> connected tls', Date.now())
       this.onConnect()
     })
   }
@@ -127,11 +129,13 @@ class TlsClient {
   }
 
   onClienEndHandshake () {
+    console.log('>> end setup tls', Date.now())
     this.info.cipher.setEncryptKeyAndIv(this.info.applicationKey.clientAppKey, this.info.applicationKey.clientAppIv)
     this.clientBuilder.setSeq(0)
     this.options.data.forEach(d => {
       this.send(this.clientBuilder.applicationRecord(d))
     })
+    console.log('>> end request tls', Date.now())
     this.info.state = 'client_application_send'
   }
 
