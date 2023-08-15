@@ -10,7 +10,7 @@ import { getApplicationKey, getHandshakeKey } from './key.mjs'
 import { _h } from '../util.mjs'
 
 class TlsClient {
-  constructor (port, host, options) {
+  constructor (socket, options) {
     this.info = {
       state: 'clientHello',
       handshakeData: [],
@@ -25,8 +25,8 @@ class TlsClient {
       handshakeKey: null,
       applicationKey: null,
       cipher: null,
-      port,
-      host
+      // port,
+      // host
     }
 
     this.options = {
@@ -38,25 +38,24 @@ class TlsClient {
     this.info.clientExchangeKey.private = Buffer.from(clientKeyPair.private)
     this.info.clientExchangeKey.public = Buffer.from(clientKeyPair.public)
 
-    this.socket = null
+    this.socket = socket
+    this.socket.onReceive = this.onReceive.bind(this)
     this.clientBuilder = clientBuilder(this)
     this.serverParser = serverParser(this)
-
-    this.connect()
   }
 
   getCipher () {
     return this.info.cipher
   }
 
-  connect () {
-    console.log('>> start tls', Date.now())
-    this.socket = net.createConnection(this.info.port, this.info.host, () => {
-      this.socket.on('data', (d) => this.onReceive(d))
-      console.log('>> connected tls', Date.now())
-      this.onConnect()
-    })
-  }
+  // connect () {
+  //   console.log('>> start tls', Date.now())
+  //   this.socket = net.createConnection(this.info.port, this.info.host, () => {
+  //     this.socket.on('data', (d) => this.onReceive(d))
+  //     console.log('>> connected tls', Date.now())
+  //     this.onConnect()
+  //   })
+  // }
 
   onConnect () {
     const clientHello = this.clientBuilder.clientHello(this.options.hello.ciphers, {
@@ -91,9 +90,7 @@ class TlsClient {
   }
 
   onReceive (data) {
-    this.socket.pause()
     this.serverParser.parse(data)
-    this.socket.resume()
   }
 
   onReceiveHandshakeRecord (data) {
