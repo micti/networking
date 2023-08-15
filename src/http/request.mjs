@@ -1,19 +1,20 @@
-import dns from 'dns/promises'
-
 import { messageGet } from './message.mjs'
 import { response as httpMessageParser } from './parser.mjs'
 import tlsClient from '../tls/tls.mjs'
 import firefoxMac115 from '../preset/firefox_mac_115.mjs'
+import connection from '../net/connection.mjs'
 
 const request = async (url, options) => {
   const { hostname, port, protocol } = new URL(url)
 
   if (protocol !== 'https:') throw new Error('only https')
 
-  const [host] = await dns.resolve(hostname)
+  const socket = connection(hostname, port || '443')
+
   const request = messageGet(url, firefoxMac115.headers.http1_1)
   let headers
   const data = []
+  const time = []
   let statusCode
   let statusText
   let requestResolve
@@ -24,14 +25,26 @@ const request = async (url, options) => {
   })
   const response = httpMessageParser({
     onHeader: (h) => { headers = h },
-    onData: (d) => data.push(d),
+    onData: (d) => {
+      data.push(d)
+      time.push(Date.now())
+    },
     onMain: (code, text) => {
       statusText = text
       statusCode = code
+    },
+    onDone: () => {
+      requestResolve({
+        statusCode,
+        statusText,
+        headers,
+        time,
+        response: data
+      })
     }
   })
 
-  tlsClient((port || '443'), host, {
+  const tls = tlsClient(socket, {
     hostname,
     data: [
       Buffer.from(request)
@@ -40,7 +53,6 @@ const request = async (url, options) => {
       response.parse(data)
     },
     onFinish: () => {
-      response.addInfo()
       requestResolve({
         statusCode,
         statusText,
@@ -49,7 +61,7 @@ const request = async (url, options) => {
       })
     },
     onError: (error) => {
-      console.log(error)
+      requestReject(error)
     },
     hello: {
       ciphers: firefoxMac115.ciphers,
@@ -57,6 +69,9 @@ const request = async (url, options) => {
       curves: firefoxMac115.curves
     }
   })
+
+  await socket.connect()
+  tls.onConnect()
 
   return result
 }

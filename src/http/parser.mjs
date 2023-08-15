@@ -1,4 +1,4 @@
-import { _h } from "../util.mjs"
+import { _h } from '../util.mjs'
 
 class Response {
   constructor (options) {
@@ -14,7 +14,9 @@ class Response {
     this.event = {}
     this.event.onHeader = options.onHeader
     this.event.onData = options.onData
+    this.event.onDone = options.onDone
     this.event.onMain = options.onMain
+    this.time = 0
   }
 
   onMain () {
@@ -50,12 +52,10 @@ class Response {
       headers[name] = value
     })
 
-    console.log(headers)
-
     let length = -1
 
-    if (headers['Content-Lenght']) {
-      length = parseInt(headers['Content-Lenght'])
+    if (headers['Content-Length']) {
+      length = parseInt(headers['Content-Length'])
     }
 
     if (headers['Transfer-Encoding']) {
@@ -69,6 +69,12 @@ class Response {
     }
 
     return length
+  }
+
+  onDone () {
+    if (this.event.onDone) {
+      this.event.onDone(this.time)
+    }
   }
 
   addInfo () {
@@ -86,7 +92,6 @@ class Response {
         this.capture = 'data'
         this.current.length = 0
         const l = this.onHeader()
-        console.log(l)
         if (l < 0) this.state = 'unknow_data'
         if (l === 0) {
           this.state = 'empty'
@@ -107,21 +112,16 @@ class Response {
     }
 
     if (this.capture === 'chunksize') {
-      console.log('>> data1')
-      console.log(this.current)
       const chunkInfo = Buffer.from(this.current)
-      console.log(_h(chunkInfo))
       const firstSpacePos = chunkInfo.indexOf(';')
       const chunkSize = firstSpacePos < 0 ? chunkInfo.length : firstSpacePos
-      console.log(chunkInfo.subarray(0, chunkSize).toString('ascii'))
       this.dataLength = parseInt(chunkInfo.subarray(0, chunkSize).toString('ascii'), 16)
-      console.log(this.dataLength)
 
       this.state = 'data'
       this.capture = 'chunkdata'
 
       if (this.dataLength === 0) {
-        this.state = 'data'
+        this.state = 'empty'
         this.capture = 'lastchunkdata'
       }
 
@@ -137,6 +137,9 @@ class Response {
     }
 
     if (this.capture === 'lastchunkdata') {
+      if (this.current.length > 0) {
+        throw new Error('HTTP Message error')
+      }
       this.state = 'skip'
       this.capture = 'break'
       this.current.length = 0
@@ -156,6 +159,9 @@ class Response {
 
     if (this.capture === 'data') {
       this.state = 'skip'
+      this.capture = 'break'
+      this.current.length = 0
+      this.onDone()
     }
   }
 
@@ -164,6 +170,7 @@ class Response {
    * @param {Buffer} data
    */
   parse (data) {
+    this.time++
     if (this.state === 'skip') return
 
     const buffer = data
@@ -197,44 +204,43 @@ class Response {
       }
 
       if (this.state === 'data') {
-        // this.current.push(buffer[p])
-        // this.dataLength--
-
-        // if (this.dataLength === 0) {
-        //   this.addInfo()
-        // }
-        // for last chunk
-        console.log(p, l, this.dataLength)
-        if (this.dataLength === 0) {
-          this.addInfo()
-        }
-
-
         if (p + this.dataLength <= l) {
           if (this.event.onData) {
-            this.event.onData(Buffer.from(buffer.subarray(p, p + this.dataLength)))
-            p += this.dataLength
-            this.addInfo()
-            continue
+            this.event.onData(buffer.subarray(p, p + this.dataLength))
           }
+
+          p += this.dataLength
+          this.addInfo()
+          continue
         }
 
         if (p + this.dataLength > l) {
           if (this.event.onData) {
-            this.event.onData(Buffer.from(buffer.subarray(p)))
-            this.dataLength -= (l - p)
-            p = l
-            continue
+            this.event.onData(buffer.subarray(p))
           }
+          this.dataLength -= (l - p)
+          p = l
+          continue
         }
+
+        // this.current.push(buffer[p])
+        // p++
+        // this.dataLength--
+        // if (this.dataLength === 0) this.addInfo()
+        // continue
       }
 
       // move all
       if (this.state === 'unknow_data') {
         if (this.event.onData) {
-          this.event.onData(Buffer.from(buffer.subarray(p)))
+          this.event.onData(buffer.subarray(p))
         }
 
+        p = l
+        continue
+      }
+
+      if (this.state === 'skip') {
         p = l
         continue
       }
