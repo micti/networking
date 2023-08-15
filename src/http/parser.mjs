@@ -54,8 +54,8 @@ class Response {
 
     let length = -1
 
-    if (headers['Content-Lenght']) {
-      length = parseInt(headers['Content-Lenght'])
+    if (headers['Content-Length']) {
+      length = parseInt(headers['Content-Length'])
     }
 
     if (headers['Transfer-Encoding']) {
@@ -159,6 +159,9 @@ class Response {
 
     if (this.capture === 'data') {
       this.state = 'skip'
+      this.capture = 'break'
+      this.current.length = 0
+      this.onDone()
     }
   }
 
@@ -201,18 +204,6 @@ class Response {
       }
 
       if (this.state === 'data') {
-        // this.current.push(buffer[p])
-        // this.dataLength--
-
-        // if (this.dataLength === 0) {
-        //   this.addInfo()
-        // }
-        // for last chunk
-        // console.log(p, l, this.dataLength)
-        // if (this.dataLength === 0) {
-        //   this.addInfo()
-        // }
-
         if (p + this.dataLength <= l) {
           if (this.event.onData) {
             this.event.onData(buffer.subarray(p, p + this.dataLength))
@@ -231,6 +222,12 @@ class Response {
           p = l
           continue
         }
+
+        // this.current.push(buffer[p])
+        // p++
+        // this.dataLength--
+        // if (this.dataLength === 0) this.addInfo()
+        // continue
       }
 
       // move all
@@ -243,7 +240,11 @@ class Response {
         continue
       }
 
-      console.log('a')
+      if (this.state === 'skip') {
+        p = l
+        continue
+      }
+
       p++
     }
   }
