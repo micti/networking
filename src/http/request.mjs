@@ -1,3 +1,5 @@
+import { createGunzip } from 'node:zlib'
+
 import { messageGet } from './message.mjs'
 import { response as httpMessageParser } from './parser.mjs'
 import tlsClient from '../tls/tls.mjs'
@@ -19,14 +21,47 @@ const request = async (url, options) => {
   let statusText
   let requestResolve
   let requestReject
+  let encoding = null
+  let isFinish = false
+  let tls = null
   const result = new Promise((resolve, reject) => {
     requestResolve = resolve
     requestReject = reject
   })
+
+  const finishFn = () => {
+    if (isFinish) return
+
+    isFinish = true
+    socket.finish()
+
+    requestResolve({
+      statusCode,
+      statusText,
+      headers,
+      time,
+      timeTLS: tls.time,
+      response: data
+    })
+  }
+
   const response = httpMessageParser({
-    onHeader: (h) => { headers = h },
+    onHeader: (h) => {
+      headers = h
+      console.log(headers)
+      if (headers['Content-Encoding'] === 'gzip') {
+        encoding = createGunzip()
+        encoding.on('data', d => data.push(d))
+        encoding.on('end', finishFn)
+      }
+    },
     onData: (d) => {
-      data.push(d)
+      if (encoding) {
+        const a = encoding.write(d)
+        console.log(a)
+      } else {
+        data.push(d)
+      }
       time.push(Date.now())
     },
     onMain: (code, text) => {
@@ -34,31 +69,22 @@ const request = async (url, options) => {
       statusCode = code
     },
     onDone: () => {
-      requestResolve({
-        statusCode,
-        statusText,
-        headers,
-        time,
-        response: data
-      })
+      if (encoding) {
+        encoding.end(null)
+        return
+      }
+
+      finishFn()
     }
   })
 
-  const tls = tlsClient(socket, {
+  tls = tlsClient(socket, {
     hostname,
-    data: [
-      Buffer.from(request)
-    ],
-    onData: (data) => {
+    onData: (data, header) => {
       response.parse(data)
     },
     onFinish: () => {
-      requestResolve({
-        statusCode,
-        statusText,
-        headers,
-        response: Buffer.concat(data).toString('utf-8')
-      })
+      finishFn()
     },
     onError: (error) => {
       requestReject(error)
@@ -70,8 +96,15 @@ const request = async (url, options) => {
     }
   })
 
+  console.log('connecting...', Date.now())
   await socket.connect()
-  tls.onConnect()
+  console.log('connected', Date.now())
+  console.log('tls handshake', Date.now())
+  await tls.handshake()
+  console.log('tls handshake end', Date.now())
+  tls.send(tls.clientBuilder.applicationRecord(Buffer.from(request)), () => {
+    console.log('>>> finish request', Date.now())
+  })
 
   return result
 }

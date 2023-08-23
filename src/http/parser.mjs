@@ -1,5 +1,3 @@
-import { _h } from '../util.mjs'
-
 class Response {
   constructor (options) {
     this.state = 'empty'
@@ -16,7 +14,6 @@ class Response {
     this.event.onData = options.onData
     this.event.onDone = options.onDone
     this.event.onMain = options.onMain
-    this.time = 0
   }
 
   onMain () {
@@ -170,8 +167,9 @@ class Response {
    * @param {Buffer} data
    */
   parse (data) {
-    this.time++
-    if (this.state === 'skip') return
+    if (this.state === 'skip') {
+      return
+    }
 
     const buffer = data
 
@@ -222,12 +220,6 @@ class Response {
           p = l
           continue
         }
-
-        // this.current.push(buffer[p])
-        // p++
-        // this.dataLength--
-        // if (this.dataLength === 0) this.addInfo()
-        // continue
       }
 
       // move all

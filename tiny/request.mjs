@@ -1,4 +1,4 @@
-import https from 'https';
+import https from 'https'
 
 console.log('s', Date.now())
 https.get('https://api.publicapis.org/entries', (res) => {

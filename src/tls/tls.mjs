@@ -1,4 +1,3 @@
-import net from 'node:net'
 import { randomBytes } from 'crypto'
 
 import * as curve25519 from 'curve25519-js'
@@ -24,10 +23,10 @@ class TlsClient {
       },
       handshakeKey: null,
       applicationKey: null,
-      cipher: null,
-      // port,
-      // host
+      cipher: null
     }
+
+    this.time = []
 
     this.options = {
       ...options
@@ -42,22 +41,20 @@ class TlsClient {
     this.socket.onReceive = this.onReceive.bind(this)
     this.clientBuilder = clientBuilder(this)
     this.serverParser = serverParser(this)
+
+    this.handshakePromiseSuccess = null
+    this.handshakePromiseError = null
+    this.handshakePromise = new Promise((resolve, reject) => {
+      this.handshakePromiseSuccess = resolve
+      this.handshakePromiseError = reject
+    })
   }
 
   getCipher () {
     return this.info.cipher
   }
 
-  // connect () {
-  //   console.log('>> start tls', Date.now())
-  //   this.socket = net.createConnection(this.info.port, this.info.host, () => {
-  //     this.socket.on('data', (d) => this.onReceive(d))
-  //     console.log('>> connected tls', Date.now())
-  //     this.onConnect()
-  //   })
-  // }
-
-  onConnect () {
+  handshake () {
     const clientHello = this.clientBuilder.clientHello(this.options.hello.ciphers, {
       extensions: {
         server_name: this.options.hostname,
@@ -83,14 +80,19 @@ class TlsClient {
     this.info.handshakeData.push(clientHello.subarray(5))
     this.send(clientHello)
     this.info.state = 'client_sent'
+
+    return this.handshakePromise
   }
 
-  send (data) {
-    return this.socket.write(data)
+  send (data, callback = null) {
+    return this.socket.write(data, callback)
   }
 
   onReceive (data) {
+    const time = Date.now()
     this.serverParser.parse(data)
+    const time2 = Date.now()
+    this.time.push([time, time2, time2 - time])
   }
 
   onReceiveHandshakeRecord (data) {
@@ -126,14 +128,9 @@ class TlsClient {
   }
 
   onClienEndHandshake () {
-    console.log('>> end setup tls', Date.now())
     this.info.cipher.setEncryptKeyAndIv(this.info.applicationKey.clientAppKey, this.info.applicationKey.clientAppIv)
     this.clientBuilder.setSeq(0)
-    this.options.data.forEach(d => {
-      this.send(this.clientBuilder.applicationRecord(d))
-    })
-    console.log('>> end request tls', Date.now())
-    this.info.state = 'client_application_send'
+    this.handshakePromiseSuccess()
   }
 
   onServerApplication (data) {

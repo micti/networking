@@ -42,16 +42,18 @@ class Connection {
     this.receiver = fn
   }
 
-  write (data) {
-    this.socket.write(data)
+  write (data, callback = null) {
+    this.socket.write(data, callback)
+  }
+
+  finish () {
+    if (!this.socket.destroyed) {
+      this.socket.destroy()
+    }
   }
 
   onReceive (data) {
-    this.socket.pause()
-
     if (this.receiver) this.receiver(data)
-
-    this.socket.resume()
   }
 }
 
