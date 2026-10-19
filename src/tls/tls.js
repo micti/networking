@@ -62,7 +62,7 @@ class TlsClient {
         renegotiation_info: null,
         ec_points: ['00'],
         session_ticket: null,
-        alpn: ['http1.1'],
+        alpn: ['http/1.1'],
         status_request: '01',
         delegated_credentials: ['0403', '0503', '0603', '0203'],
         key_share: {

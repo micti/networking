@@ -53,6 +53,10 @@ class Connection {
 
     this.socket.resume()
   }
+
+  destroy () {
+    this.socket.destroy()
+  }
 }
 
 export default (hostname, port) => new Connection(hostname, port)
