@@ -1,8 +1,8 @@
 import request from './src/http/request.js'
 
-// const requestTo = 'https://tools.scrapfly.io/api/fp/ja3?extended=1'
+const requestTo = 'https://tools.scrapfly.io/api/fp/ja3?extended=1'
 // const requestTo = 'https://api.publicapis.org/entries'
-const requestTo = 'https://127.0.0.1:8000/a/s/d/d/d'
+// const requestTo = 'https://127.0.0.1:8000/a/s/d/d/d'
 
 ;(async () => {
   const t1 = Date.now()
