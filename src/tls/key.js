@@ -1,4 +1,5 @@
-import * as curve25519 from 'curve25519-js'
+import { createPrivateKey, createPublicKey, diffieHellman } from 'node:crypto'
+
 import { empty } from '../util.js'
 
 const getHandshakeKey = (data, privateKey, publicKey, cipher) => {
@@ -8,7 +9,13 @@ const getHandshakeKey = (data, privateKey, publicKey, cipher) => {
   } = cipher.getLength()
 
   const helloHash = cipher.hash(data)
-  const sharedKey = Buffer.from(curve25519.sharedKey(privateKey, publicKey))
+  const sharedKey = diffieHellman({
+    privateKey: createPrivateKey({ key: privateKey, format: 'der', type: 'pkcs8' }),
+    publicKey: createPublicKey({
+      key: { kty: 'OKP', crv: 'X25519', x: publicKey.toString('base64url') },
+      format: 'jwk'
+    })
+  })
   const emptyHash = cipher.hash(empty)
   const earlySecret = cipher.hfkdExtract(cipher.zeroKey(), Buffer.from('00', 'hex'))
   const derivedSecret = cipher.hfkdExpandLabel(earlySecret, 'derived', emptyHash)

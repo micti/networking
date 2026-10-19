@@ -1,6 +1,4 @@
-import { randomBytes } from 'crypto'
-
-import * as curve25519 from 'curve25519-js'
+import { generateKeyPairSync } from 'node:crypto'
 
 import { clientBuilder } from './builder.js'
 import { serverParser } from './parser.js'
@@ -32,10 +30,10 @@ class TlsClient {
       ...options
     }
 
-    const clientKeyPair = curve25519.generateKeyPair(randomBytes(32))
+    const clientKeyPair = generateKeyPairSync('x25519')
 
-    this.info.clientExchangeKey.private = Buffer.from(clientKeyPair.private)
-    this.info.clientExchangeKey.public = Buffer.from(clientKeyPair.public)
+    this.info.clientExchangeKey.private = clientKeyPair.privateKey.export({ format: 'der', type: 'pkcs8' })
+    this.info.clientExchangeKey.public = Buffer.from(clientKeyPair.publicKey.export({ format: 'jwk' }).x, 'base64url')
 
     this.socket = socket
     this.socket.onReceive = this.onReceive.bind(this)

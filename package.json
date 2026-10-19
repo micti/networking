@@ -4,9 +4,6 @@
     "lint": "eslint .",
     "lint:fix": "eslint . --fix"
   },
-  "dependencies": {
-    "curve25519-js": "^0.0.4"
-  },
   "engines": {
     "node": ">=24"
   },
