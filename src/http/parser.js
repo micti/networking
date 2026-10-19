@@ -1,5 +1,3 @@
-import { _h } from '../util.js'
-
 class Response {
   constructor (options) {
     this.state = 'empty'

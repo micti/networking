@@ -1,4 +1,3 @@
-import net from 'node:net'
 import { randomBytes } from 'crypto'
 
 import * as curve25519 from 'curve25519-js'
@@ -24,7 +23,7 @@ class TlsClient {
       },
       handshakeKey: null,
       applicationKey: null,
-      cipher: null,
+      cipher: null
       // port,
       // host
     }
