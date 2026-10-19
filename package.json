@@ -1,4 +1,9 @@
 {
+  "type": "module",
+  "scripts": {
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix"
+  },
   "dependencies": {
     "curve25519-js": "^0.0.4"
   },
@@ -6,6 +11,8 @@
     "node": ">=24"
   },
   "devDependencies": {
-    "standard": "^17.1.0"
+    "eslint": "^10.13.0",
+    "eslint-plugin-import-x": "^4.17.1",
+    "neostandard": "^0.14.1"
   }
 }
