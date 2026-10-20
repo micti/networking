@@ -2,8 +2,6 @@ import { h } from '../util.js'
 import ClientHelloRecord from './record/client_hello.js'
 import ChangeCipherRecord from './record/change_cipher.js'
 
-const seq = 0
-
 class ClientBuilder {
   constructor (tls) {
     this.tls = tls
@@ -42,7 +40,7 @@ class ClientBuilder {
   }
 
   encryptRecord = (data) => {
-    return this.tls.getCipher().encryptRecord(data, h('170303'), seq)
+    return this.tls.getCipher().encryptRecord(data, h('170303'), this.seq++)
   }
 }
 
