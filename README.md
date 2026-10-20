@@ -8,13 +8,26 @@ Started in 2023 as a Proof of Concept to get past Cloudflare's TLS fingerprintin
 
 ## Status
 
-| Module | Spec | State |
-| --- | --- | --- |
-| TLS 1.3 | [RFC 8446](https://www.rfc-editor.org/rfc/rfc8446) | Working |
-| HTTP/1.1 | [RFC 9112](https://www.rfc-editor.org/rfc/rfc9112) | Working |
-| HPACK | [RFC 7541](https://www.rfc-editor.org/rfc/rfc7541) | In progress, see tests |
-| HTTP/2 framing | [RFC 9113](https://www.rfc-editor.org/rfc/rfc9113) | In progress |
-| HTTP/3 / QUIC | [RFC 9114](https://www.rfc-editor.org/rfc/rfc9114) | Planned |
+| Module | Spec | Local copy | State |
+| --- | --- | --- | --- |
+| TLS 1.3 | [RFC 8446](https://www.rfc-editor.org/rfc/rfc8446) | [rfc8446.txt](rfc/rfc8446.txt) | Working |
+| HTTP/1.1 | [RFC 9112](https://www.rfc-editor.org/rfc/rfc9112) | | Working |
+| HPACK | [RFC 7541](https://www.rfc-editor.org/rfc/rfc7541) | [rfc7541.txt](rfc/rfc7541.txt) | In progress, see tests |
+| HTTP/2 framing | [RFC 9113](https://www.rfc-editor.org/rfc/rfc9113) | [rfc9113.txt](rfc/rfc9113.txt) | In progress |
+| HTTP/3 / QUIC | [RFC 9114](https://www.rfc-editor.org/rfc/rfc9114) | | Planned |
+
+## Specs
+
+Plain-text copies of the RFCs live in [`rfc/`](rfc/), so you can read and search them next to the code. Each one is also linked online.
+
+| RFC | Topic | Local | Online |
+| --- | --- | --- | --- |
+| 8446 | TLS 1.3 | [rfc8446.txt](rfc/rfc8446.txt) | [rfc-editor.org](https://www.rfc-editor.org/rfc/rfc8446) |
+| 7748 | X25519 / X448 elliptic curves | [rfc7748.txt](rfc/rfc7748.txt) | [rfc-editor.org](https://www.rfc-editor.org/rfc/rfc7748) |
+| 7919 | ffdhe groups for TLS | [rfc7919.txt](rfc/rfc7919.txt) | [rfc-editor.org](https://www.rfc-editor.org/rfc/rfc7919) |
+| 5280 | X.509 certificates and path validation | [rfc5280.txt](rfc/rfc5280.txt) | [rfc-editor.org](https://www.rfc-editor.org/rfc/rfc5280) |
+| 7541 | HPACK header compression | [rfc7541.txt](rfc/rfc7541.txt) | [rfc-editor.org](https://www.rfc-editor.org/rfc/rfc7541) |
+| 9113 | HTTP/2 | [rfc9113.txt](rfc/rfc9113.txt) | [rfc-editor.org](https://www.rfc-editor.org/rfc/rfc9113) |
 
 ## Requirements
 
@@ -58,6 +71,7 @@ src/
   preset/   Browser fingerprints (cipher suites, extensions, headers)
 test/       Unit tests (node:test)
 benchmark/  Benchmark against node:https and fetch
+rfc/        Plain-text copies of the RFCs
 ```
 
 ## Development
