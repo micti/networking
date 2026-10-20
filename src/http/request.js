@@ -6,6 +6,7 @@ import connection from '../net/connection.js'
 
 const request = async (url, options) => {
   const { hostname, port, protocol } = new URL(url)
+  const { onData } = options || {}
 
   if (protocol !== 'https:') throw new Error('only https')
 
@@ -26,7 +27,11 @@ const request = async (url, options) => {
   const response = httpMessageParser({
     onHeader: (h) => { headers = h },
     onData: (d) => {
-      data.push(d)
+      if (onData) {
+        onData(d)
+      } else {
+        data.push(d)
+      }
       time.push(Date.now())
     },
     onMain: (code, text) => {
@@ -39,7 +44,7 @@ const request = async (url, options) => {
         statusText,
         headers,
         time,
-        response: data
+        response: data.length > 0 ? data : undefined
       })
     }
   })

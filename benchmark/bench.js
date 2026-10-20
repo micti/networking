@@ -22,14 +22,16 @@ const CASES = {
 }
 const CLIENTS = ['lib', 'https', 'fetch']
 
-const bodySize = (r) => {
-  const body = r.response ?? r
-  return Array.isArray(body) ? body.reduce((n, b) => n + b.length, 0) : body.length
-}
+// const bodySize = (r) => {
+//   const body = r.response ?? r
+//   return Array.isArray(body) ? body.reduce((n, b) => n + b.length, 0) : body.length
+// }
 
 const makeClient = async (name) => {
   if (name === 'lib') {
-    return async (url) => bodySize(await request(url, {}))
+    return async (url) => await request(url, {
+      onData: (d) => {}
+    })
   }
 
   if (name === 'https') {
