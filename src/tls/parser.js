@@ -277,7 +277,7 @@ class ServerParser {
         this.tls.onReceiveHandshakeRecord(data.subarray(p, p + 4 + length))
         this.tls.onServerEndHandshake(rh)
 
-        p += p + 4 + length
+        p += 4 + length
         info.push(rh)
         continue
       }
